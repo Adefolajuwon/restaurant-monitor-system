@@ -1,4 +1,4 @@
-import Sequelize, { Model } from 'sequelize';
+import Sequelize, { Model,DataTypes } from 'sequelize';
 
 class Timezone extends Model {
 	static init(sequelize) {
@@ -15,7 +15,7 @@ class Timezone extends Model {
 			{
 				sequelize,
 				timestamps: true,
-				tableName: 'TimezoneTable',
+				tableName: 'Timezone',
 			}
 		);
 	}

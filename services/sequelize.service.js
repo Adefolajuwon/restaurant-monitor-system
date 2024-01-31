@@ -21,7 +21,7 @@ const sequelizeService = {
 
 			/*
         Loading models automatically
-      */
+      */ 
 
 			for (const file of files) {
 				const modelModule = await import(`../models/${file}`);

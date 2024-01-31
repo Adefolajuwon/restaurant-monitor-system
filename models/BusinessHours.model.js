@@ -1,4 +1,4 @@
-import Sequelize, { Model } from 'sequelize';
+import Sequelize, { Model, DataTypes } from 'sequelize';
 
 class Business extends Model {
 	static init(sequelize) {
@@ -17,7 +17,7 @@ class Business extends Model {
 			{
 				sequelize,
 				timestamps: true,
-				tableName: 'BusinessTable',
+				tableName: 'BusinessHours',
 			}
 		);
 	}

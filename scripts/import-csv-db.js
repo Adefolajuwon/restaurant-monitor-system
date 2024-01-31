@@ -4,4 +4,5 @@ import { Sequelize } from 'sequelize';
 
 const titles_fd = "../data/titles.csv"
 
-const menu = fs.createReadStream('titles_fd', )
+const menu = fs.createReadStream(titles_fd)
+menu.on("")
