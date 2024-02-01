@@ -17,18 +17,23 @@ const files = readdirSync(modelsPath);
 const sequelizeService = {
 	init: async () => {
 		try {
+			// Create a new Sequelize instance
 			let connection = new Sequelize(databaseConfig);
 
-			/*
-        Loading models automatically
-      */ 
+			// Test the connection by authenticating with the database
+			await connection.authenticate();
+			console.log('[SEQUELIZE] Database connection established successfully');
 
+			/*
+		  Loading models automatically
+		*/
 			for (const file of files) {
 				const modelModule = await import(`../models/${file}`);
 				const model = modelModule.default;
 
 				if (model && typeof model.init === 'function') {
 					model.init(connection);
+					await model.sync(); // Synchronize the model with the database
 				} else {
 					console.warn(
 						`[SEQUELIZE] Skipping model initialization for ${file}. Missing init method.`
@@ -36,22 +41,12 @@ const sequelizeService = {
 				}
 			}
 
-			files.map(async (file) => {
-				const modelModule = await import(`../models/${file}`);
-				const model = modelModule.default;
-
-				if (model && typeof model.associate === 'function') {
-					model.associate(connection.models);
-				} else {
-					console.warn(
-						`[SEQUELIZE] Skipping model association for ${file}. Missing associate method.`
-					);
-				}
-			});
-
 			console.log('[SEQUELIZE] Database service initialized');
 		} catch (error) {
-			console.error('[SEQUELIZE] Error during database service initialization');
+			console.error(
+				'[SEQUELIZE] Error during database service initialization:',
+				error
+			);
 			throw error;
 		}
 	},

@@ -1,4 +1,4 @@
-import Sequelize, { Model,DataTypes } from 'sequelize';
+import Sequelize, { Model, DataTypes } from 'sequelize';
 
 class Timezone extends Model {
 	static init(sequelize) {
@@ -9,8 +9,8 @@ class Timezone extends Model {
 					primaryKey: true,
 					autoIncrement: true,
 				},
-				store_id: Sequelize.INTEGER,
-				timezon_str: Sequelize.INTEGER,
+				store_id: Sequelize.STRING,
+				timezone_str: Sequelize.STRING,
 			},
 			{
 				sequelize,
