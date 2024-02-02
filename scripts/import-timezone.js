@@ -5,7 +5,10 @@ import { Sequelize } from 'sequelize';
 import { connection } from '../services/sequelize.service.js';
 const timezones = './data/timezones.csv';
 
-const TimeZone = async () => {
+/**
+ * create a read stream for getting data from csv
+ */
+const TimezoneStream = async () => {
 	return new Promise((resolve, reject) => {
 		const stream = fs.createReadStream(timezones, 'utf-8');
 		let data = '';
@@ -23,7 +26,12 @@ const TimeZone = async () => {
 		});
 	});
 };
-const rows = await TimeZone().then((data) =>
+/**splits the string into array line using '/n' as delimiter
+ * then map over each line represented by 'row' and slits into a array using ',' as delimeter
+ * get the first array(the csv headers)
+ * and finally remove the first element(header) using rows.shift()
+ */
+const rows = await TimezoneStream().then((data) =>
 	data.split('\n').map((row) => row.split(','))
 );
 const columns = rows[0];
@@ -32,8 +40,8 @@ rows.shift();
 const data = rows.map((row) => {
 	const rowData = {};
 
-	// Check if the row is not empty
 	if (
+		//check if there are no empty rows to prevent error when uploading to db
 		row.some((value) => value !== undefined && value !== null && value !== '')
 	) {
 		columns.forEach((column, index) => {
