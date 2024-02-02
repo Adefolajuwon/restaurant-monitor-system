@@ -3,38 +3,38 @@ import Timezone from '../models/TimeZone.model.js';
 import { Sequelize } from 'sequelize';
 // import csv from 'csv-parser';
 import { connection } from '../services/sequelize.service.js';
-const store = './data/store-status.csv';
+const timezones = './data/timezones.csv';
+const fileHandleRead = await fs.open(timezones, 'r');
 
 /**
  * create a read stream for getting data from csv
  */
-const fileHandleRead = await fs.open('store', 'r');
+const TimezoneStream = async () => {
+	return new Promise((resolve, reject) => {
+		const stream = fileHandleRead.createReadStream({
+			highWaterMark: 64 * 1024,
+		});
+		let data = '';
 
-const streamRead = fileHandleRead.createReadStream({
-	highWaterMark: 64 * 1024,
-});
+		stream.on('data', (chunk) => {
+			data += chunk;
+		});
 
-streamRead.on('data', (chunk) => {
-	data += chunk;
-});
+		stream.on('end', () => {
+			resolve(data);
+		});
 
-streamWrite.on('drain', () => {
-	streamRead.resume();
-});
-streamRead.on('end', () => {
-	resolve(data);
-});
-
-streamRead.on('error', (error) => {
-	reject(error);
-});
-
+		stream.on('error', (error) => {
+			reject(error);
+		});
+	});
+};
 /**splits the string into array line using '/n' as delimiter
  * then map over each line represented by 'row' and slits into a array using ',' as delimeter
  * get the first array(the csv headers)
  * and finally remove the first element(header) using rows.shift()
  */
-const rows = await streamRead.then((data) =>
+const rows = await TimezoneStream().then((data) =>
 	data.split('\n').map((row) => row.split(','))
 );
 const columns = rows[0];
