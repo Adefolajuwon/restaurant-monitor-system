@@ -2,7 +2,7 @@ import fs from 'fs';
 import Timezone from '../models/TimeZone.model.js';
 import { Sequelize } from 'sequelize';
 // import csv from 'csv-parser';
-import sequelizeService from '../services/sequelize.service.js';
+import { connection } from '../services/sequelize.service.js';
 const timezones = './data/timezones.csv';
 
 const TimeZone = async () => {
@@ -28,8 +28,6 @@ const rows = await TimeZone().then((data) =>
 );
 const columns = rows[0];
 rows.shift();
-// console.log(rows);
-// console.log(columns);
 
 const data = rows.map((row) => {
 	const rowData = {};
@@ -57,13 +55,14 @@ const data = rows.map((row) => {
 
 // Remove any empty objects from the resulting array
 const filteredData = data.filter((obj) => Object.keys(obj).length > 0);
-console.log(filteredData);
 async function importData() {
 	try {
-		// await sequelizeService.authenticate(); // Check if the connection to the database is successful
-		// await Sequelize.sync({ force: true });
+		await connection.sync({ force: true });
+		Timezone.init(connection);
 
 		await Timezone.bulkCreate(filteredData);
+		// console.log(filteredData);
+
 		console.log('Data imported successfully!');
 	} catch (error) {
 		console.error('Error importing data:', error);

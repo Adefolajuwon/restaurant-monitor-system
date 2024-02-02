@@ -14,32 +14,33 @@ const modelsPath = join(__dirname, '/../models/');
 // Now you can use readdirSync with the correct path
 const files = readdirSync(modelsPath);
 
+const connection = new Sequelize(databaseConfig);
+
 const sequelizeService = {
 	init: async () => {
 		try {
-			// Create a new Sequelize instance
-			let connection = new Sequelize(databaseConfig);
-
 			// Test the connection by authenticating with the database
 			await connection.authenticate();
 			console.log('[SEQUELIZE] Database connection established successfully');
 
 			/*
-		  Loading models automatically
-		*/
+        Loading models automatically
+      */
 			for (const file of files) {
 				const modelModule = await import(`../models/${file}`);
 				const model = modelModule.default;
 
 				if (model && typeof model.init === 'function') {
 					model.init(connection);
-					await model.sync(); // Synchronize the model with the database
+					await model.sync();
 				} else {
 					console.warn(
 						`[SEQUELIZE] Skipping model initialization for ${file}. Missing init method.`
 					);
 				}
 			}
+
+			await connection.sync(); // Synchronize all models associated with the Sequelize instance
 
 			console.log('[SEQUELIZE] Database service initialized');
 		} catch (error) {
@@ -52,4 +53,4 @@ const sequelizeService = {
 	},
 };
 
-export default sequelizeService;
+export { connection, sequelizeService };

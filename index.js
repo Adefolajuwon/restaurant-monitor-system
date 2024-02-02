@@ -1,6 +1,6 @@
 import http from 'http';
 import express from 'express';
-import sequelizeService from './services/sequelize.service.js';
+import { sequelizeService } from './services/sequelize.service.js';
 
 const PORT = process.env.PORT || 3005;
 
