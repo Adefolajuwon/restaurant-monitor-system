@@ -14,9 +14,7 @@ const StoreStream = async () => {
 		const stream = fileHandleRead.createReadStream();
 		let data = '';
 
-		stream.on('data', (chunk) => {
-			data += chunk;
-		});
+		stream.on('data', (chunk) => {});
 
 		stream.on('end', () => {
 			resolve(data);
@@ -32,6 +30,7 @@ const StoreStream = async () => {
  * get the first array(the csv headers)
  * and finally remove the first element(header) using rows.shift()
  */
+const process = (chunk) => {};
 const rows = await StoreStream().then((data) =>
 	data.split('\n').map((row) => row.split(','))
 );
