@@ -2,7 +2,7 @@ import http from 'http';
 import express from 'express';
 import { sequelizeService } from './services/sequelize.service.js';
 
-const PORT = process.env.PORT || 3005;
+const PORT = process.env.PORT || 7000;
 
 const serverApp = express();
 serverApp.set('trust proxy', true);

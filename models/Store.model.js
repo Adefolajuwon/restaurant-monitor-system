@@ -1,6 +1,6 @@
-import Sequelize, { Model,DataTypes } from 'sequelize';
+import Sequelize, { Model, DataTypes } from 'sequelize';
 
-class Timezone extends Model {
+class Store extends Model {
 	static init(sequelize) {
 		super.init(
 			{
@@ -9,9 +9,9 @@ class Timezone extends Model {
 					primaryKey: true,
 					autoIncrement: true,
 				},
-				store_id: Sequelize.INTEGER,
+				store_id: Sequelize.BIGINT,
 				timestamps_utc: Sequelize.DATE,
-                status: Sequelize.STRING
+				status: Sequelize.STRING,
 			},
 			{
 				sequelize,
@@ -21,4 +21,4 @@ class Timezone extends Model {
 		);
 	}
 }
-export default Timezone;
+export default Store;

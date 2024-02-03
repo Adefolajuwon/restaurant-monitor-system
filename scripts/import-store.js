@@ -1,19 +1,17 @@
-import fs from 'fs';
-import Timezone from '../models/TimeZone.model.js';
+import { promises as fs } from 'fs';
 import { Sequelize } from 'sequelize';
+import Store from '../models/Store.model.js';
 // import csv from 'csv-parser';
 import { connection } from '../services/sequelize.service.js';
-const timezones = './data/timezones.csv';
-const fileHandleRead = await fs.open(timezones, 'r');
+const store = './data/store-status.csv';
+const fileHandleRead = await fs.open(store, 'r');
 
 /**
  * create a read stream for getting data from csv
  */
-const TimezoneStream = async () => {
+const StoreStream = async () => {
 	return new Promise((resolve, reject) => {
-		const stream = fileHandleRead.createReadStream({
-			highWaterMark: 64 * 1024,
-		});
+		const stream = fileHandleRead.createReadStream();
 		let data = '';
 
 		stream.on('data', (chunk) => {
@@ -34,7 +32,7 @@ const TimezoneStream = async () => {
  * get the first array(the csv headers)
  * and finally remove the first element(header) using rows.shift()
  */
-const rows = await TimezoneStream().then((data) =>
+const rows = await StoreStream().then((data) =>
 	data.split('\n').map((row) => row.split(','))
 );
 const columns = rows[0];
@@ -69,9 +67,9 @@ const filteredData = data.filter((obj) => Object.keys(obj).length > 0);
 async function importData() {
 	try {
 		await connection.sync({ force: true });
-		Timezone.init(connection);
+		Store.init(connection);
 
-		await Timezone.bulkCreate(filteredData);
+		await Store.bulkCreate(filteredData);
 		// console.log(filteredData);
 
 		console.log('Data imported successfully!');

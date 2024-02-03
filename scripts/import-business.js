@@ -1,5 +1,5 @@
 import fs from 'fs';
-import Timezone from '../models/TimeZone.model.js';
+import Business from '../models/BusinessHours.model.js';
 import { Sequelize } from 'sequelize';
 // import csv from 'csv-parser';
 import { connection } from '../services/sequelize.service.js';
@@ -8,7 +8,7 @@ const business = './data/business-hours.csv';
 /**
  * create a read stream for getting data from csv
  */
-const TimezoneStream = async () => {
+const BusinessStream = async () => {
 	return new Promise((resolve, reject) => {
 		const stream = fs.createReadStream(business, 'utf-8');
 		let data = '';
@@ -31,7 +31,7 @@ const TimezoneStream = async () => {
  * get the first array(the csv headers)
  * and finally remove the first element(header) using rows.shift()
  */
-const rows = await TimezoneStream().then((data) =>
+const rows = await BusinessStream().then((data) =>
 	data.split('\n').map((row) => row.split(','))
 );
 const columns = rows[0];
@@ -66,9 +66,9 @@ const filteredData = data.filter((obj) => Object.keys(obj).length > 0);
 async function importData() {
 	try {
 		await connection.sync({ force: true });
-		Timezone.init(connection);
+		Business.init(connection);
 
-		await Timezone.bulkCreate(filteredData);
+		await Business.bulkCreate(filteredData);
 		// console.log(filteredData);
 
 		console.log('Data imported successfully!');
