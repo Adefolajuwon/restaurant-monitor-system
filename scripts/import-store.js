@@ -3,26 +3,57 @@ import { Sequelize } from 'sequelize';
 import Store from '../models/Store.model.js';
 // import csv from 'csv-parser';
 import { connection } from '../services/sequelize.service.js';
+import { through2 } from 'through2';
 const store = './data/store-status.csv';
+
 const fileHandleRead = await fs.open(store, 'r');
 
 /**
  * create a read stream for getting data from csv
  */
-const StoreStream = async () => {
+const StoreStream = async (filePath, promiseThunk, bufferSize) => {
+	const bufferSize = 100;
 	return new Promise((resolve, reject) => {
-		const stream = fileHandleRead.createReadStream();
-		let data = '';
-
-		stream.on('data', (chunk) => {});
-
-		stream.on('end', () => {
-			resolve(data);
-		});
-
-		stream.on('error', (error) => {
-			reject(error);
-		});
+		const stream = fs.createReadStream(filePath, { encoding: 'utf8' });
+		let buffer = [];
+		stream
+			.pipe(split2())
+			//ensure that the next chunk will be processed by the
+			//stream only when we want to
+			.pipe(
+				through2((chunk, enc, callback) => {
+					//put the chunk along with the other ones
+					buffer.push(chunk.toString());
+					if (buffer.length < bufferSize) {
+						callback(); //next step, no process
+					} else {
+						//call the method that creates a promise, and at the end
+						//just empty the buffer, and process the next chunk
+						return new Promise((resolve, reject) =>
+							buffer.finally(() => {
+								buffer = [];
+								callback();
+							})
+						);
+					}
+				})
+			)
+			.on('error', (error) => {
+				reject(error);
+			})
+			.on('finish', () => {
+				//any remaining data still needs to be sent
+				//resolve the outer promise only when the final batch has completed processing
+				if (buffer.length > 0) {
+					return new Promise((resolve, reject) =>
+						buffer.finally(() => {
+							resolve(true);
+						})
+					);
+				} else {
+					resolve(true);
+				}
+			});
 	});
 };
 /**splits the string into array line using '/n' as delimiter
@@ -30,8 +61,7 @@ const StoreStream = async () => {
  * get the first array(the csv headers)
  * and finally remove the first element(header) using rows.shift()
  */
-const process = (chunk) => {};
-const rows = await StoreStream().then((data) =>
+const rows = await StoreStream(store).then((data) =>
 	data.split('\n').map((row) => row.split(','))
 );
 const columns = rows[0];
