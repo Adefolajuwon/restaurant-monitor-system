@@ -66,7 +66,6 @@ const rows = await StoreStream(store)
 		// Log the data to check if it's undefined
 		console.log('Data from StoreStream:', data);
 
-		// Assuming StoreStream returns a promise that resolves with the data
 		return data.split('\n').map((row) => row.split(','));
 	})
 	.catch((error) => {
