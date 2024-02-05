@@ -1,40 +1,38 @@
-import { promises as fs } from 'fs';
+import fs from 'fs';
 import { Sequelize } from 'sequelize';
 import Store from '../models/Store.model.js';
+import split2 from 'split2';
 // import csv from 'csv-parser';
 import { connection } from '../services/sequelize.service.js';
-import { through2 } from 'through2';
+import through2 from 'through2';
 const store = './data/store-status.csv';
 
-const fileHandleRead = await fs.open(store, 'r');
+// const fileHandleRead = await fs.open(store, 'r');
 
 /**
  * create a read stream for getting data from csv
  */
-const StoreStream = async (filePath, promiseThunk, bufferSize) => {
+const StoreStream = async (filePath) => {
 	const bufferSize = 100;
+	let buffer = [];
+
 	return new Promise((resolve, reject) => {
-		const stream = fs.createReadStream(filePath, { encoding: 'utf8' });
-		let buffer = [];
+		const stream = fs.createReadStream(filePath);
+
 		stream
 			.pipe(split2())
-			//ensure that the next chunk will be processed by the
-			//stream only when we want to
 			.pipe(
 				through2((chunk, enc, callback) => {
-					//put the chunk along with the other ones
 					buffer.push(chunk.toString());
 					if (buffer.length < bufferSize) {
-						callback(); //next step, no process
+						callback();
 					} else {
-						//call the method that creates a promise, and at the end
-						//just empty the buffer, and process the next chunk
-						return new Promise((resolve, reject) =>
-							buffer.finally(() => {
-								buffer = [];
-								callback();
-							})
-						);
+						// Process the buffer and clear it asynchronously
+						setTimeout(() => {
+							console.log('Processing buffer:', buffer);
+							buffer = []; // Clear the buffer
+							callback();
+						}, 0);
 					}
 				})
 			)
@@ -42,28 +40,40 @@ const StoreStream = async (filePath, promiseThunk, bufferSize) => {
 				reject(error);
 			})
 			.on('finish', () => {
-				//any remaining data still needs to be sent
-				//resolve the outer promise only when the final batch has completed processing
+				// Process any remaining data in the buffer
 				if (buffer.length > 0) {
-					return new Promise((resolve, reject) =>
-						buffer.finally(() => {
-							resolve(true);
-						})
-					);
+					// Asynchronously process the remaining buffer
+					setTimeout(() => {
+						// Your processing logic here
+						console.log('Processing remaining buffer:', buffer);
+						buffer = []; // Clear the buffer
+						resolve();
+					}, 0);
 				} else {
-					resolve(true);
+					resolve();
 				}
 			});
 	});
 };
+
 /**splits the string into array line using '/n' as delimiter
  * then map over each line represented by 'row' and slits into a array using ',' as delimeter
  * get the first array(the csv headers)
  * and finally remove the first element(header) using rows.shift()
  */
-const rows = await StoreStream(store).then((data) =>
-	data.split('\n').map((row) => row.split(','))
-);
+const rows = await StoreStream(store)
+	.then((data) => {
+		// Log the data to check if it's undefined
+		console.log('Data from StoreStream:', data);
+
+		// Assuming StoreStream returns a promise that resolves with the data
+		return data.split('\n').map((row) => row.split(','));
+	})
+	.catch((error) => {
+		console.error('Error reading and processing the file:', error);
+		return []; // Return an empty array or handle the error accordingly
+	});
+
 const columns = rows[0];
 rows.shift();
 
