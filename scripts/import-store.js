@@ -30,6 +30,7 @@ const StoreStream = async (filePath) => {
 						// Process the buffer and clear it asynchronously
 						setTimeout(() => {
 							console.log('Processing buffer:', buffer);
+							importData(buffer);
 							buffer = []; // Clear the buffer
 							callback();
 						}, 0);
@@ -61,59 +62,63 @@ const StoreStream = async (filePath) => {
  * get the first array(the csv headers)
  * and finally remove the first element(header) using rows.shift()
  */
-const rows = await StoreStream(store)
-	.then((data) => {
-		// Log the data to check if it's undefined
-		console.log('Data from StoreStream:', data);
+const importData = async (buffer) => {
+	/**the result of this operation should look likethis
+	 * [
+	 *['1261687550619351810', 'inactive', '2023-01-20 09:04:04.458723 UTC'],
+	 *['4159465907457430553', 'inactive', '2023-01-21 11:07:55.705372 UTC'],
+	 *]
+	 */
+	const splitbuffer = buffer
+		.join('\n')
+		.split('\n')
+		.map((row) => row.split(','));
 
-		return data.split('\n').map((row) => row.split(','));
-	})
-	.catch((error) => {
-		console.error('Error reading and processing the file:', error);
-		return []; // Return an empty array or handle the error accordingly
+	const columns = ['store_id', 'timestamp_utc', 'status'];
+	// splitbuffer.shift();
+
+	const data = splitbuffer.map((row) => {
+		const rowData = {};
+
+		if (
+			//check if there are no empty buffer to prevent error when uploading to db
+			row.some((value) => value !== undefined && value !== null && value !== '')
+		) {
+			columns.forEach((column, index) => {
+				// Check if the value in the current row and column is not empty
+				if (
+					row[index] !== undefined &&
+					row[index] !== null &&
+					row[index] !== ''
+				) {
+					// Assign the value to the rowData object
+					rowData[column] = row[index];
+				}
+				// If the value is empty, it will be skipped
+			});
+		}
+
+		return rowData;
 	});
 
-const columns = rows[0];
-rows.shift();
+	// Remove any empty objects from the resulting array
+	const filteredData = data.filter((obj) => Object.keys(obj).length > 0);
 
-const data = rows.map((row) => {
-	const rowData = {};
+	async function importDB() {
+		try {
+			await connection.sync({ force: true });
+			Store.init(connection);
 
-	if (
-		//check if there are no empty rows to prevent error when uploading to db
-		row.some((value) => value !== undefined && value !== null && value !== '')
-	) {
-		columns.forEach((column, index) => {
-			// Check if the value in the current row and column is not empty
-			if (
-				row[index] !== undefined &&
-				row[index] !== null &&
-				row[index] !== ''
-			) {
-				// Assign the value to the rowData object
-				rowData[column] = row[index];
-			}
-			// If the value is empty, it will be skipped
-		});
+			await Store.bulkCreate(filteredData);
+			// console.log(filteredData);
+
+			console.log('Data imported successfully!');
+		} catch (error) {
+			console.error('Error importing data:', error);
+		}
 	}
+	importDB();
+};
 
-	return rowData;
-});
-
-// Remove any empty objects from the resulting array
-const filteredData = data.filter((obj) => Object.keys(obj).length > 0);
-async function importData() {
-	try {
-		await connection.sync({ force: true });
-		Store.init(connection);
-
-		await Store.bulkCreate(filteredData);
-		// console.log(filteredData);
-
-		console.log('Data imported successfully!');
-	} catch (error) {
-		console.error('Error importing data:', error);
-	}
-}
-
-importData();
+// importData();
+StoreStream(store);

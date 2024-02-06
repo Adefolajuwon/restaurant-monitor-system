@@ -6,7 +6,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "store": "node scripts/import-store.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.310.0",

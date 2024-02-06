@@ -10,12 +10,11 @@ class Store extends Model {
 					autoIncrement: true,
 				},
 				store_id: Sequelize.BIGINT,
-				timestamps_utc: Sequelize.DATE,
+				timestamp_utc: Sequelize.STRING,
 				status: Sequelize.STRING,
 			},
 			{
 				sequelize,
-				timestamps: true,
 				tableName: 'Store',
 			}
 		);
