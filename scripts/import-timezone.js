@@ -1,3 +1,4 @@
+/**Sequelize in only used in this project for data importing */
 import fs from 'fs';
 import Timezone from '../models/TimeZone.model.js';
 import { Sequelize } from 'sequelize';

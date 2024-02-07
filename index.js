@@ -23,9 +23,13 @@ serverApp.use((err, req, res, next) => {
 
 const server = http.createServer(serverApp);
 
-// Initialize Sequelize and start server
-async () => {
-	server.listen(PORT, () => {
-		console.log(`Server started on PORT ${PORT}...`);
-	});
-};
+// Async function to start the server
+async function startServer() {
+	await server.listen(PORT);
+	console.log(`Server started on PORT ${PORT}...`);
+}
+
+// Call the async function to start the server
+startServer().catch((err) => {
+	console.error('Error starting server:', err);
+});

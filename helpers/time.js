@@ -1,12 +1,23 @@
-import Timezone from '../models/TimeZone.model.js';
-import Business from '../models/BusinessHours.model.js';
+import { db } from '../services/knex.services.js';
 import { DateTime } from 'luxon';
 
-export const compute_uptime = async () => {};
-
-const getTimeZone = async (store_id) => {
-	const timezone = await Timezone.findOne({ where: { store_id } });
-	console.log(timezone);
+const dateTime = DateTime.now();
+export const uptime_last_hour = async () => {
+	try {
+	} catch (error) {}
 };
 
-getTimeZone('9055649751952768824');
+const getTimeZone = async (store_id) => {
+	try {
+		let timezone;
+		timezone = await db('Timezone').first().where('store_id', '=', store_id);
+		if (!timezone) {
+			timezone = {
+				timezone_str: dateTime.setZone('America/Chicago'),
+			};
+		}
+		console.log(timezone);
+	} catch (error) {
+		console.error('Error fetching timezone:', error);
+	}
+};
