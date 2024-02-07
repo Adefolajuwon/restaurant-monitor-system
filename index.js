@@ -1,6 +1,5 @@
 import http from 'http';
 import express from 'express';
-import { sequelizeService } from './services/sequelize.service.js';
 
 const PORT = process.env.PORT || 7000;
 
@@ -25,8 +24,8 @@ serverApp.use((err, req, res, next) => {
 const server = http.createServer(serverApp);
 
 // Initialize Sequelize and start server
-sequelizeService.init().then(async () => {
+async () => {
 	server.listen(PORT, () => {
 		console.log(`Server started on PORT ${PORT}...`);
 	});
-});
+};
