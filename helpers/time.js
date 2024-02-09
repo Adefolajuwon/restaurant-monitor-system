@@ -18,6 +18,11 @@ export const uptime_last_hour = async (store_id) => {
 			const obj = storeArray[i];
 			timestamps.push(obj.timestamp_utc);
 		}
+		const parsedDate = parseDate(timestamps);
+		console.log(parsedDate);
+		const maxDate = getMaxDate(parsedDate);
+		console.log(maxDate);
+		// console.log(timestamps);
 	} catch (error) {
 		console.error('Error querying the database:', error);
 	}
@@ -38,4 +43,26 @@ const getTimeZone = async (store_id) => {
 		console.error('Error fetching timezone:', error);
 	}
 };
+/**This function takes an array of strings and converts the array elements to date format */
+function _convertStringToDate(array) {
+	const result = [];
+	for (let i = 0; i < array.length; i++) {
+		const dateTimeObject = DateTime.fromISO(array[i], { zone: 'UTC' });
+		const date = dateTimeObject.toISO();
+		result.push(date);
+	}
+	console.log(result);
+	return result;
+}
+
+function parseDate(dateString) {
+	return DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm:ss.SSSSSS 'UTC'");
+}
+
+function getMaxDate(dateStrings) {
+	const dates = dateStrings.map((dateString) =>
+		DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm:ss.SSSSSS 'UTC'")
+	);
+	return DateTime.max(...dates);
+}
 uptime_last_hour('299331931566263572');
