@@ -20,15 +20,14 @@ export const uptime_last_hour = async (store_id) => {
 		}
 		const parsedDate = parseDate(timestamps);
 		console.log(parsedDate);
-		const maxDate = getMaxDate(parsedDate);
-		console.log(maxDate);
-		// console.log(timestamps);
+		// const maxDate = getMaxDate(timestamps);
+		// console.log(maxDate);
 	} catch (error) {
 		console.error('Error querying the database:', error);
 	}
 };
 
-/**Get the store timezon and if data is missing for the store set the timezone to 'america/chicago' */
+/**Get the store timezone and if data is missing for the store set the timezone to 'america/chicago' */
 const getTimeZone = async (store_id) => {
 	try {
 		let timezone;
@@ -54,15 +53,49 @@ function _convertStringToDate(array) {
 	console.log(result);
 	return result;
 }
+function parseDate(dateArray) {
+	const formattedDates = [];
+	for (let i = 0; i < dateArray.length; i++) {
+		// Split the string by space to separate date and time
+		const parts = dateArray[i].split(' ');
+		console.log(parts);
 
-function parseDate(dateString) {
-	return DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm:ss.SSSSSS 'UTC'");
+		if (parts.length === 2) {
+			// Get the date and time parts
+			const dateString = parts[0];
+			const timeString = parts[1];
+
+			// Remove the 'UTC' part from the time string
+			const isoString = `${dateString}T${timeString.replace(' UTC', '')}`;
+
+			// Parse the ISO 8601 formatted string
+			const dateTimeObject = DateTime.fromISO(isoString, { zone: 'UTC' });
+			formattedDates.push(dateTimeObject);
+		}
+	}
+	console.log(formattedDates);
+	return formattedDates;
+}
+const array = ['2023-01-24 05:54:11 UTC', '2023-01-19 00:04:47 UTC'];
+
+function parseDateArray(dateArray) {
+	const parsedDates = dateArray.map((dateString) => {
+		try {
+			return DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm:ss 'UTC'");
+		} catch (error) {
+			console.error(`Error parsing date "${dateString}": ${error.message}`);
+			return null;
+		}
+	});
+	console.log(parsedDates);
+	return parsedDates.filter((date) => date !== null);
 }
 
+parseDateArray(array);
 function getMaxDate(dateStrings) {
 	const dates = dateStrings.map((dateString) =>
 		DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm:ss.SSSSSS 'UTC'")
 	);
 	return DateTime.max(...dates);
 }
-uptime_last_hour('299331931566263572');
+// uptime_last_hour('299331931566263572');

@@ -43,11 +43,9 @@ const StoreStream = async (filePath) => {
 			.on('finish', () => {
 				// Process any remaining data in the buffer
 				if (buffer.length > 0) {
-					// Asynchronously process the remaining buffer
 					setTimeout(() => {
-						// Your processing logic here
 						console.log('Processing remaining buffer:', buffer);
-						buffer = []; // Clear the buffer
+						buffer = [];
 						resolve();
 					}, 0);
 				} else {
