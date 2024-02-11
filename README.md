@@ -136,3 +136,24 @@ The server will start running on http://localhost:7000
 
 
   ```
+
+  [
+  {
+  "store_id": "123456",
+  "uptime_last_hour": 50,
+  "uptime_last_day": 18,
+  "uptime_last_week": 120,
+  "downtime_last_hour": 10,
+  "downtime_last_day": 6,
+  "downtime_last_week": 30
+  },
+  {
+  "store_id": "789012",
+  "uptime_last_hour": 45,
+  "uptime_last_day": 20,
+  "uptime_last_week": 110,
+  "downtime_last_hour": 15,
+  "downtime_last_day": 5,
+  "downtime_last_week": 25
+  }
+  ]

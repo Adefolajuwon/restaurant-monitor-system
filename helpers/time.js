@@ -65,10 +65,8 @@ function parseDate(dateArray) {
 			const dateString = parts[0];
 			const timeString = parts[1];
 
-			// Remove the 'UTC' part from the time string
 			const isoString = `${dateString}T${timeString.replace(' UTC', '')}`;
 
-			// Parse the ISO 8601 formatted string
 			const dateTimeObject = DateTime.fromISO(isoString, { zone: 'UTC' });
 			formattedDates.push(dateTimeObject);
 		}
