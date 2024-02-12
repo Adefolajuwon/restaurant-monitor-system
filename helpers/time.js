@@ -18,7 +18,7 @@ export const uptime_last_hour = async (store_id) => {
 			const obj = storeArray[i];
 			timestamps.push(obj.timestamp_utc);
 		}
-		const parsedDate = parseDate(timestamps);
+		const parsedDate = _parseDate(timestamps);
 		console.log(parsedDate);
 		// const maxDate = getMaxDate(timestamps);
 		// console.log(maxDate);
@@ -26,7 +26,23 @@ export const uptime_last_hour = async (store_id) => {
 		console.error('Error querying the database:', error);
 	}
 };
+/**Get the business hours for a store
+ * dayOfWeek(0=Monday, 6=Sunday), start_time_local, end_time_local
+ *If data is missing for a store, assume it is open 24*7
+ *this is used to get the time interval
+ */
 
+const business_hours = async (store_id) => {
+	const extractedData = [];
+	const hours = await db('BusinessHours').where('store_id', '=', store_id);
+	for (let i = 0; i < hours.length; i++) {
+		const { start_time_local, day, end_time_local } = hours[i];
+		extractedData.push({ start_time_local, day, end_time_local });
+	}
+	console.log(extractedData);
+	return extractedData;
+};
+business_hours('1481966498820158979');
 /**Get the store timezone and if data is missing for the store set the timezone to 'america/chicago' */
 const getTimeZone = async (store_id) => {
 	try {
@@ -53,7 +69,7 @@ function _convertStringToDate(array) {
 	console.log(result);
 	return result;
 }
-function parseDate(dateArray) {
+function _parseDate(dateArray) {
 	const formattedDates = [];
 	for (let i = 0; i < dateArray.length; i++) {
 		// Split the string by space to separate date and time
@@ -74,7 +90,6 @@ function parseDate(dateArray) {
 	console.log(formattedDates);
 	return formattedDates;
 }
-const array = ['2023-01-24 05:54:11 UTC', '2023-01-19 00:04:47 UTC'];
 
 function parseDateArray(dateArray) {
 	const parsedDates = dateArray.map((dateString) => {
@@ -89,7 +104,7 @@ function parseDateArray(dateArray) {
 	return parsedDates.filter((date) => date !== null);
 }
 
-parseDateArray(array);
+// parseDateArray(array);
 function getMaxDate(dateStrings) {
 	const dates = dateStrings.map((dateString) =>
 		DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm:ss.SSSSSS 'UTC'")
