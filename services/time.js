@@ -1,4 +1,4 @@
-import { db } from '../services/knex.services.js';
+import { db } from './knex.services.js';
 import { DateTime } from 'luxon';
 
 const dateTime = DateTime.now();
@@ -19,6 +19,7 @@ export const uptime_last_hour = async (store_id) => {
 			timestamps.push(obj.timestamp_utc);
 		}
 		const parsedDate = _parseDate(timestamps);
+		const businessHours = business_hours(store_id);
 		console.log(parsedDate);
 		// const maxDate = getMaxDate(timestamps);
 		// console.log(maxDate);
@@ -27,11 +28,10 @@ export const uptime_last_hour = async (store_id) => {
 	}
 };
 /**Get the business hours for a store
- * dayOfWeek(0=Monday, 6=Sunday), start_time_local, end_time_local
+ *dayOfWeek(0=Monday, 6=Sunday), start_time_local, end_time_local
  *If data is missing for a store, assume it is open 24*7
  *this is used to get the time interval
  */
-
 const business_hours = async (store_id) => {
 	const extractedData = [];
 	const hours = await db('BusinessHours').where('store_id', '=', store_id);
@@ -42,7 +42,62 @@ const business_hours = async (store_id) => {
 	console.log(extractedData);
 	return extractedData;
 };
-business_hours('1481966498820158979');
+
+/**the function takes an array of businesss hours for a particular store and the purpose of this function is to calulate the intersect of a business hour within a particular time interval
+ *
+ */
+function _calculateBusinessOverlap(businessHours, timezone) {
+	const extractedData = [];
+	const utcTimesArray = [];
+	// let start_time_local, end_time_local;
+
+	const startDay = DateTime.now()
+		.startOf('day')
+		.toUTC()
+		.toISOTime({ includeOffset: false });
+	const endDay = startDay
+		.plus({ days: 1 })
+		.startOf('day')
+		.toUTC()
+		.toISOTime({ includeOffset: false });
+
+	for (let i = 0; i < hours.length; i++) {
+		let { start_time_local, end_time_local } = businessHours[i];
+		extractedData.push({ start_time_local, end_time_local });
+	}
+	extractedData.forEach((localElement) => {
+		const startTimeUTC = DateTime.fromISO(
+			`1970-01-01T${localElement.start_time_local}`
+		)
+			.toUTC()
+			.toISOTime();
+		const endTimeUTC = DateTime.fromISO(
+			`1970-01-01T${localElement.end_time_local}`
+		)
+			.toUTC()
+			.toISOTime();
+		utcTimesArray.push({
+			start_time_utc: startTimeUTC,
+			end_time_utc: endTimeUTC,
+		});
+	});
+	const business_day_start = new Date(
+		Math.max(startDay.getTime(), start_time_utc.getTime())
+	);
+
+	// console.log(extractedData);
+	console.log(startDay);
+	console.log(utcTimesArray);
+}
+const hours = [
+	{ start_time_local: '00:00:00', day: 4, end_time_local: '00:10:00' },
+	{ start_time_local: '00:00:00', day: 2, end_time_local: '00:10:00' },
+	{ start_time_local: '00:00:00', day: 0, end_time_local: '00:10:00' },
+	{ start_time_local: '00:00:00', day: 1, end_time_local: '00:10:00' },
+	{ start_time_local: '00:00:00', day: 5, end_time_local: '00:10:00' },
+];
+_calculateBusinessOverlap(hours, 'america/chicago');
+
 /**Get the store timezone and if data is missing for the store set the timezone to 'america/chicago' */
 const getTimeZone = async (store_id) => {
 	try {
@@ -91,7 +146,7 @@ function _parseDate(dateArray) {
 	return formattedDates;
 }
 
-function parseDateArray(dateArray) {
+function _parseDateArray(dateArray) {
 	const parsedDates = dateArray.map((dateString) => {
 		try {
 			return DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm:ss 'UTC'");
@@ -105,7 +160,7 @@ function parseDateArray(dateArray) {
 }
 
 // parseDateArray(array);
-function getMaxDate(dateStrings) {
+function _getMaxDate(dateStrings) {
 	const dates = dateStrings.map((dateString) =>
 		DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm:ss.SSSSSS 'UTC'")
 	);

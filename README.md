@@ -126,6 +126,7 @@ The server will start running on http://localhost:7000
   ```
 
   - Response
+    `
 
   ```
       HTTP/1.1 200 OK
